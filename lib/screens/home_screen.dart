@@ -11,6 +11,7 @@ import 'package:notice_app/models/event_model.dart';
 import 'package:notice_app/screens/fragments/fragment.dart';
 import 'package:notice_app/widgets/event.dart';
 import 'package:notice_app/widgets/holiday.dart';
+import 'package:dio/dio.dart';
 
 const int HOME_PAGE = 1;
 const int EVENTS = 2;
@@ -34,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     if (widget.quote.isEmpty) {
-      load_quote(firestore);
+      load_quote();
     }
 
     return Scaffold(
@@ -237,8 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       : widget.eventModel == null
                           ? Text("No Events")
                           : !widget.eventModel!.holiday
-                              ? Event(widget.eventModel!)
-                              : Holiday(widget.eventModel!)
+                              ? Event.today(widget.eventModel!)
+                              : Holiday.today(widget.eventModel!)
                 ],
               ),
             ),
@@ -272,51 +273,78 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  load_quote(firestore) {
-    firestore
-        .collection('quotes')
-        .doc('quotes')
-        .get()
-        .then((DocumentSnapshot documentSnapshot) {
-      if (documentSnapshot.exists) {
-        print(documentSnapshot.get('quote'));
+  load_quote() async {
+    // firestore
+    //     .collection('quotes')
+    //     .doc('quotes')
+    //     .get()
+    //     .then((DocumentSnapshot documentSnapshot) {
+    //   if (documentSnapshot.exists) {
+    //     print(documentSnapshot.get('quote'));
+    //     setState(() {
+    //       widget.quote = documentSnapshot.get('quote');
+    //       widget.author = documentSnapshot.get('author');
+    //     });
+    //     load_events(firestore);
+    //   }
+    // });
+    var dio = Dio();
+    try {
+      var response = await dio.get('http://sahilviradiya.pythonanywhere.com/api/quote/');
+      // print(response.data);
+      if (response.statusCode == 200) {
+        widget.quote = response.data["quote"];
+        widget.author = response.data["author"];
+        response = await dio.get('http://sahilviradiya.pythonanywhere.com/api/current_event/');
+        if (response.statusCode == 200) {
+          widget.eventModel = EventModel(
+            DateTime.parse(response.data["scheduled_at"]),
+            DateTime.parse(response.data["added"]),
+            response.data["msg"],
+            response.data["holiday"],
+            response.data["image"],
+          );
+        }
         setState(() {
-          widget.quote = documentSnapshot.get('quote');
-          widget.author = documentSnapshot.get('author');
+          widget.loading = false;
         });
-        load_events(firestore);
       }
-    });
+    } catch (e) {
+      print(e.toString());
+      setState(() {
+        widget.loading = false;
+      });
+    }
   }
 
-  load_events(firestore) {
-    var today = DateTime.now();
-    firestore
-        .collection('events')
-        .where("scheduled_at", isGreaterThanOrEqualTo: DateTime.now())
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      try {
-        var doc = querySnapshot.docs.first;
-        print(doc['msg']);
-        widget.eventModel = EventModel(
-          doc["scheduled_at"].toDate(),
-          doc["added"].toDate(),
-          doc["msg"],
-          doc["holiday"],
-          doc["image"],
-        );
-        setState(() {
-          widget.loading = false;
-        });
-      } catch (e) {
-        print(e);
-        setState(() {
-          widget.loading = false;
-        });
-      }
-    });
-  }
+  // load_events(firestore) {
+  //   var today = DateTime.now();
+  //   firestore
+  //       .collection('events')
+  //       .where("scheduled_at", isGreaterThanOrEqualTo: DateTime.now())
+  //       .get()
+  //       .then((QuerySnapshot querySnapshot) {
+  //     try {
+  //       var doc = querySnapshot.docs.first;
+  //       print(doc['msg']);
+  //       widget.eventModel = EventModel(
+  //         doc["scheduled_at"].toDate(),
+  //         doc["added"].toDate(),
+  //         doc["msg"],
+  //         doc["holiday"],
+  //         doc["image"],
+  //       );
+  //       setState(() {
+
+  //       });
+  //     } catch (e) {
+  //       print(e);
+  //       setState(() {
+  //         widget.loading = false;
+  //       });
+  //     }
+  //   });
+  // }
 
   Widget _drawer() {
     return Drawer(
@@ -493,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             title: Text(
-             "RWn. Romil Narola",
+              "RWn. Romil Narola",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),

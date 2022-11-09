@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
-
 import 'package:jiffy/jiffy.dart';
 import 'package:notice_app/models/event_model.dart';
 
 class Holiday extends StatelessWidget {
   late EventModel eventModel;
+  bool today = false;
 
   Holiday(this.eventModel);
+
+  Holiday.today(this.eventModel, {this.today = true});
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +47,10 @@ class Holiday extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    Icon(Icons.access_time),
-                    Text(Jiffy(eventModel.added).fromNow()),
+                    Icon(today?Icons.access_time:Icons.calendar_month),
+                    Text(today
+                        ? Jiffy(eventModel.added).fromNow()
+                        : Jiffy(eventModel.scheduled_at).format("MMMM do yyyy")),
                   ],
                 ),
               ],

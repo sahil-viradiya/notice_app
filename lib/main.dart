@@ -1,11 +1,11 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:notice_app/logo.dart';
-import 'package:notice_app/screens/home_screen.dart';
+// import 'package:notice_app/screens/home_screen.dart';
 // import 'logo.dart';
 
 //Recieves message when the app is in background state!

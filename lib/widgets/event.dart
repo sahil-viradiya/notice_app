@@ -4,10 +4,10 @@ import 'package:jiffy/jiffy.dart';
 import '../models/event_model.dart';
 
 class Event extends StatelessWidget {
-   late EventModel eventModel;
-
+  late EventModel eventModel;
+  bool today = false;
   Event(this.eventModel);
-
+  Event.today(this.eventModel, {this.today = true});
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +51,13 @@ class Event extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Icon(Icons.access_time),
-                  Text(Jiffy(eventModel.added).fromNow()),
+                  Icon(today ? Icons.access_time : Icons.calendar_month),
+                  Text(
+                    (today
+                        ? Jiffy(eventModel.added).fromNow()
+                        : Jiffy(eventModel.scheduled_at)
+                            .format("MMMM do yyyy")),
+                  ),
                 ],
               ),
             ],
@@ -62,6 +67,7 @@ class Event extends StatelessWidget {
           ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
                 child: Text(
